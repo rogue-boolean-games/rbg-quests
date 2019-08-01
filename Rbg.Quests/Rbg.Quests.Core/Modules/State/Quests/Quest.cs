@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
 
 namespace Rbg.Quests.Core.Modules.State.Quests
 {
@@ -24,10 +24,6 @@ namespace Rbg.Quests.Core.Modules.State.Quests
         QuestDto ToDto();
     }
 
-    public interface IQuestContent
-    {
-    }
-
     public class Quest : IQuest
     {
         private QuestDto _dto;
@@ -48,7 +44,7 @@ namespace Rbg.Quests.Core.Modules.State.Quests
 
         public bool IsComplete()
         {
-            return Progress.Criteria.TrueForAll(x => x.IsSatisfied);
+            return Progress.Criteria.All(x => x.Value.IsSatisfied);
         }
 
         public QuestDto ToDto()
@@ -60,12 +56,6 @@ namespace Rbg.Quests.Core.Modules.State.Quests
         }
     }
 
-    public class QuestProgress
-    {
-        // TODO: this probably doesn't want to be a list. Probably better Dictionary<string, QuestCriterion>
-        public List<QuestCriterion> Criteria { get; } = new List<QuestCriterion>();
-    }
-
     // TODO: consider how we can handle changed quest requirements over time 
     // e.g. if we change the 3rd criterion of 3 and progress has been made against 2 of them (or even the 3rd)
     // what should we do etc.
@@ -73,61 +63,19 @@ namespace Rbg.Quests.Core.Modules.State.Quests
     {
         public string Id { get; private set; }
 
-        private QuestCriterion()
+        private QuestCriterion(string questContentId)
         {
-            /* */
         }
 
-        public static QuestCriterion From( /* QuestCriterionContentDto dto */)
+        public static QuestCriterion From( /* QuestContent questContent */)
         {
-            // set ID in here and setup all fields
-            return new QuestCriterion( /* dto */);
+            // TODO: generate ID from quest content ID (e.g. "Quest001_Criterion002")
+            return new QuestCriterion(string.Empty);
         }
-
-        // TODO: should these even be here? It's content, not state
-        public CriterionAcculumationType AccumulationType { get; }
-        public CriterionSatisfactionType SatisfactionType { get; }
 
         public int Count { get; set; }
 
         public bool IsSatisfied { get; set; }
-    }
-
-    /**
-     * When the criterion has a count applied to it, should the count
-     * be incremented cumulatively (e.g. total score) or should only higher
-     * or lower values be counted (e.g. top score for a level)?
-     */
-    public enum CriterionAcculumationType
-    {
-        Cumulative = 0,
-        AcceptHigherValuesOnly = 1,
-        AcceptLowerValuesOnly = 2,
-        AcceptAnyValue = 3
-    }
-
-    /**
-     * How the criterion is satisfied when checked;
-     * against a target Y, the count X can be:
-     *
-     * X == Y, X >= Y, X <= Y, X > Y, X < Y
-     */
-    public enum CriterionSatisfactionType
-    {
-        // hit the bullseye with exactly 3 darts
-        CountMatchesTargetExactly = 0,
-
-        // e.g. >=, kill 10 or more monsters
-        CountMatchesOrExceedsTarget = 1,
-
-        // e.g. <=, complete the mission in 60 seconds or less
-        CountMatchesOrUndercutsTarget = 2,
-
-        // e.g. score over 10,000 points
-        CountExceedsTarget = 3,
-
-        // don't lose 3 hostages
-        CountUndercutsTarget = 4
     }
 
     public interface IDto
